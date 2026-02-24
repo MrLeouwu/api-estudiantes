@@ -1,0 +1,43 @@
+openapi: 3.0.0
+info:
+  title: API Estudiantes
+  version: 1.0.0
+
+paths:
+  /estudiantes:
+    get:
+      summary: Obtener todos los estudiantes
+      responses:
+        '200':
+          description: Lista de estudiantes
+
+    post:
+      summary: Crear estudiante
+      responses:
+        '200':
+          description: Estudiante creado
+
+  /estudiantes/{id}:
+    get:
+      summary: Obtener estudiante por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estudiante encontrado
+
+    put:
+      summary: Actualizar estudiante
+      responses:
+        '200':
+          description: Actualizado
+
+    delete:
+      summary: Eliminar estudiante
+      responses:
+        '200':
+          description: Eliminado
