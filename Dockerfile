@@ -4,16 +4,16 @@ RUN apt-get update && apt-get install -y curl gnupg && \
     curl -fL "https://github.com/coursier/coursier/releases/latest/download/cs-x86_64-pc-linux.gz" | gzip -d > /usr/local/bin/cs && \
     chmod +x /usr/local/bin/cs && \
     cs install sbt && \
-    export PATH="$PATH:/root/.local/share/coursier/bin"
+    export PATH="/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/share/coursier/bin"
 
 ENV PATH="/root/.local/share/coursier/bin:${PATH}"
 
 WORKDIR /app
 
-COPY api-estudiantes/project ./project
-COPY api-estudiantes/build.sbt ./build.sbt
-COPY api-estudiantes/src ./src
-COPY api-estudiantes/init.sql ./init.sql
+COPY project ./project
+COPY build.sbt ./
+COPY src ./src
+COPY init.sql .
 
 RUN sbt assembly
 
