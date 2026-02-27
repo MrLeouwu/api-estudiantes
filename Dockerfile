@@ -18,4 +18,4 @@ RUN sbt assembly
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/scala-2.13/api-estudiantes-assembly-0.1.0.jar"]
+CMD ["java", "-cp", "target/scala-2.13/api-estudiantes-assembly-0.1.0.jar", "main.Main"]
