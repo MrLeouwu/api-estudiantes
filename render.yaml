@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: api-estudiantes
+    env: docker
+    region: oregon
+    plan: free
+
+databases:
+  - name: estudiantes-db
+    plan: free
+    region: oregon
+    type: mysql

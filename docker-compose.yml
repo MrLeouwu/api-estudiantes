@@ -8,16 +8,30 @@ services:
     ports:
       - "3306:3306"
     restart: always
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   api:
     build: .
     container_name: api_estudiantes
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/estudiantes_db
+      DB_URL: jdbc:mysql://mysql:3306/estudiantes_db?serverTimezone=UTC
       DB_USER: root
       DB_PASS: ""
+      JWT_SECRET: api-estudiantes-secret-key-production-2024
     restart: always
+
+volumes:
+  mysql_data:

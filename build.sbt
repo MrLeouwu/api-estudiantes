@@ -2,6 +2,7 @@ ThisBuild / version := "0.1.0"
 ThisBuild / scalaVersion := "2.13.12"
 
 lazy val root = (project in file("."))
+  .enablePlugins(sbtassembly.AssemblyPlugin)
   .settings(
     name := "api-estudiantes",
 
@@ -37,4 +38,3 @@ lazy val root = (project in file("."))
         MergeStrategy.first
     }
   )
-  .enablePlugins(sbtassembly.AssemblyPlugin)

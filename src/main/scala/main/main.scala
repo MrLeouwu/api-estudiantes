@@ -1,7 +1,6 @@
 package main
 
-import cats.effect._
-import cats.effect.IO
+import cats.effect.{IO, IOApp, ExitCode}
 
 import doobie._
 import doobie.implicits._
@@ -15,28 +14,27 @@ import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
 import io.circe.generic.auto._
 
-import org.http4s.HttpApp
+import org.http4s._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
+import org.http4s.dsl.io._
+import org.http4s.implicits._
 
 import com.comcast.ip4s._
-
 import scala.concurrent.ExecutionContext
 
-import models.Estudiante
-import repository.EstudianteRepository
+import models.{Estudiante, LoginRequest, LoginResponse}
+import repository.{EstudianteRepository, UsuarioRepository}
 import service.EstudianteService
 
 object Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
 
-    // 🔹 Leer variables de entorno (Docker o Local)
-    val dbUrl  = sys.env.getOrElse("DB_URL", "jdbc:mysql://localhost:3306/estudiantes_db")
+    val dbUrl  = sys.env.getOrElse("DB_URL", sys.env.getOrElse("DATABASE_URL", "jdbc:mysql://localhost:3306/estudiantes_db"))
     val dbUser = sys.env.getOrElse("DB_USER", "root")
     val dbPass = sys.env.getOrElse("DB_PASS", "")
 
-    // 🔹 ExecutionContext para Doobie
     val connectEC = ExecutionContext.global
 
     val transactorResource =
@@ -50,8 +48,9 @@ object Main extends IOApp {
 
     transactorResource.use { xa =>
 
-      val repository = new EstudianteRepository(xa)
-      val service = new EstudianteService(repository)
+      val usuarioRepo = new UsuarioRepository(xa)
+      val estudianteRepo = new EstudianteRepository(xa)
+      val estudianteService = new EstudianteService(estudianteRepo)
 
       val baseEndpoint = endpoint.in("estudiantes")
 
@@ -59,7 +58,7 @@ object Main extends IOApp {
         baseEndpoint.get
           .out(jsonBody[List[Estudiante]])
           .serverLogic[IO](_ =>
-            service.getAll.map(Right(_))
+            estudianteService.getAll.map(Right(_))
           )
 
       val getById =
@@ -67,7 +66,7 @@ object Main extends IOApp {
           .in(path[Int]("id"))
           .out(jsonBody[Option[Estudiante]])
           .serverLogic[IO](id =>
-            service.getById(id).map(Right(_))
+            estudianteService.getById(id).map(Right(_))
           )
 
       val create =
@@ -75,7 +74,7 @@ object Main extends IOApp {
           .in(jsonBody[Estudiante])
           .out(jsonBody[Int])
           .serverLogic[IO](est =>
-            service.create(est).map(Right(_))
+            estudianteService.create(est).map(Right(_))
           )
 
       val delete =
@@ -83,23 +82,50 @@ object Main extends IOApp {
           .in(path[Int]("id"))
           .out(jsonBody[Int])
           .serverLogic[IO](id =>
-            service.delete(id).map(Right(_))
+            estudianteService.delete(id).map(Right(_))
+          )
+
+      val loginEndpoint = endpoint.in("auth").in("login")
+      val loginRoute =
+        loginEndpoint.post
+          .in(jsonBody[LoginRequest])
+          .out(jsonBody[LoginResponse])
+          .serverLogic[IO](req =>
+            usuarioRepo.findByUsername(req.username).map {
+              case Some(usuario) if usuario.password == req.password =>
+                val token = usuario.apiToken.getOrElse("")
+                Right(LoginResponse(token, "Login exitoso"))
+              case _ =>
+                Left("Usuario o contraseña incorrectos")
+            }
+          )
+
+      val registerEndpoint = endpoint.in("auth").in("register")
+      val registerRoute =
+        registerEndpoint.post
+          .in(jsonBody[LoginRequest])
+          .out(jsonBody[String])
+          .serverLogic[IO](req =>
+            usuarioRepo.register(req.username, req.password).map { _ =>
+              Right("Usuario registrado. Ahora puedes hacer login.")
+            }.handleErrorWith(e => IO(Left(s"Error: ${e.getMessage}")))
           )
 
       val swaggerEndpoints =
         SwaggerInterpreter()
           .fromServerEndpoints[IO](
-            List(getAll, getById, create, delete),
+            List(getAll, getById, create, delete, loginRoute, registerRoute),
             "API Estudiantes",
             "1.0"
           )
 
-      val httpApp: HttpApp[IO] =
-        Router(
-          "/" -> Http4sServerInterpreter[IO]().toRoutes(
-            List(getAll, getById, create, delete) ++ swaggerEndpoints
-          )
-        ).orNotFound
+      val allRoutes = Http4sServerInterpreter[IO]().toRoutes(
+        List(getAll, getById, create, delete, loginRoute, registerRoute) ++ swaggerEndpoints
+      )
+
+      val httpApp: HttpApp[IO] = Router(
+        "/" -> allRoutes
+      ).orNotFound
 
       EmberServerBuilder.default[IO]
         .withHost(host"0.0.0.0")
