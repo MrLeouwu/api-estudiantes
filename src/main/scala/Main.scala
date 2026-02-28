@@ -42,14 +42,14 @@ object Main extends IOApp {
     "info": {
       "title": "API Estudiantes",
       "version": "1.0.0",
-      "description": "API para gestionar estudiantes con autenticación"
+      "description": "API para gestionar estudiantes"
     },
-    "servers": [{ "url": "/api/v1" }],
+    "servers": [{"url": "/api/v1"}],
     "paths": {
       "/health": {
         "get": {
           "summary": "Health check",
-          "responses": { "200": { "description": "OK" } }
+          "responses": {"200": {"description": "OK"}}
         }
       },
       "/usuarios": {
@@ -61,92 +61,107 @@ object Main extends IOApp {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "username": { "type": "string" },
-                    "password": { "type": "string" }
+                    "username": {"type": "string"},
+                    "password": {"type": "string"}
                   }
                 }
               }
             }
           },
-          "responses": { "200": { "description": "Usuario registrado" } }
+          "responses": {"200": {"description": "Usuario registrado"}}
         }
       },
       "/login": {
         "post": {
-          "summary": "Iniciar sesión",
+          "summary": "Iniciar sesion",
           "requestBody": {
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "username": { "type": "string" },
-                    "password": { "type": "string" }
+                    "username": {"type": "string"},
+                    "password": {"type": "string"}
                   }
                 }
               }
             }
           },
-          "responses": { "200": { "description": "Login exitoso", "content": { "application/json": { "schema": { "type": "object", "properties": { "token": { "type": "string" } } } } } }
+          "responses": {
+            "200": {
+              "description": "Login exitoso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "token": {"type": "string"},
+                      "message": {"type": "string"}
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "/estudiantes": {
         "get": {
           "summary": "Listar estudiantes",
-          "security": [{ "bearerAuth": [] }],
-          "responses": { "200": { "description": "Lista de estudiantes" } }
+          "security": [{"bearerAuth": []}],
+          "responses": {"200": {"description": "Lista de estudiantes"}}
         },
         "post": {
           "summary": "Crear estudiante",
-          "security": [{ "bearerAuth": [] }],
+          "security": [{"bearerAuth": []}],
           "requestBody": {
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "nombre": { "type": "string" },
-                    "edad": { "type": "integer" }
+                    "nombre": {"type": "string"},
+                    "edad": {"type": "integer"}
                   }
                 }
               }
             }
           },
-          "responses": { "200": { "description": "Estudiante creado" } }
+          "responses": {"200": {"description": "Estudiante creado"}}
         }
       },
       "/estudiantes/{id}": {
         "get": {
           "summary": "Obtener estudiante por ID",
-          "security": [{ "bearerAuth": [] }],
-          "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-          "responses": { "200": { "description": "Estudiante encontrado" } }
+          "security": [{"bearerAuth": []}],
+          "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+          "responses": {"200": {"description": "Estudiante encontrado"}}
         },
         "put": {
           "summary": "Actualizar estudiante",
-          "security": [{ "bearerAuth": [] }],
-          "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+          "security": [{"bearerAuth": []}],
+          "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
           "requestBody": {
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": { "type": "integer" },
-                    "nombre": { "type": "string" },
-                    "edad": { "type": "integer" }
+                    "id": {"type": "integer"},
+                    "nombre": {"type": "string"},
+                    "edad": {"type": "integer"}
                   }
                 }
               }
             }
           },
-          "responses": { "200": { "description": "Estudiante actualizado" } }
+          "responses": {"200": {"description": "Estudiante actualizado"}}
         },
         "delete": {
           "summary": "Eliminar estudiante",
-          "security": [{ "bearerAuth": [] }],
-          "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-          "responses": { "200": { "description": "Estudiante eliminado" } }
+          "security": [{"bearerAuth": []}],
+          "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+          "responses": {"200": {"description": "Estudiante eliminado"}}
         }
       }
     },
@@ -155,7 +170,7 @@ object Main extends IOApp {
         "bearerAuth": {
           "type": "http",
           "scheme": "bearer",
-          " bearerFormat": "UUID"
+          "bearerFormat": "UUID"
         }
       }
     }
