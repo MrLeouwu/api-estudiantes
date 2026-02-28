@@ -33,4 +33,12 @@ class EstudianteRepository(xa: Transactor[IO]) {
       .update
       .run
       .transact(xa)
+
+  def update(est: Estudiante): IO[Int] =
+    est.id match {
+      case Some(id) =>
+        sql"UPDATE estudiantes SET nombre = ${est.nombre}, edad = ${est.edad} WHERE id = $id"
+          .update.run.transact(xa)
+      case None => IO.pure(0)
+    }
 }

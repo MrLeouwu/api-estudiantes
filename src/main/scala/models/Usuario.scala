@@ -1,10 +1,10 @@
 package models
 
 case class Usuario(
-  id: Int,
+  id: Option[Int],
   username: String,
   password: String,
-  apiToken: Option[String]
+  apiToken: Option[String] = None
 )
 
 case class LoginRequest(
@@ -15,4 +15,9 @@ case class LoginRequest(
 case class LoginResponse(
   token: String,
   message: String
+)
+
+case class HealthResponse(
+  status: String,
+  timestamp: String
 )

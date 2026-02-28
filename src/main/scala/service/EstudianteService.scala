@@ -17,4 +17,7 @@ class EstudianteService(repo: EstudianteRepository) {
 
   def delete(id: Int): IO[Int] =
     repo.delete(id)
+
+  def update(est: Estudiante): IO[Int] =
+    repo.update(est)
 }
