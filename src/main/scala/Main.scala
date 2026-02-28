@@ -26,11 +26,14 @@ object Main extends IOApp {
 <html>
 <head>
   <title>API Estudiantes - Documentación</title>
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js">
+  <style>
+    body { margin: 0; padding: 0; }
+  </style>
+  <link href="https://cdn.jsdelivr.net/npm/redoc@2.0.0/bundles/redoc.standalone.css" rel="stylesheet">
 </head>
 <body>
   <redoc spec-url='/api/v1/openapi.json'></redoc>
-  <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/redoc@2.0.0/bundles/redoc.standalone.js"></script>
 </body>
 </html>"""
   
