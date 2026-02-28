@@ -1,6 +1,7 @@
 package main
 
 import cats.effect.{IO, IOApp, ExitCode}
+import cats.implicits._
 import org.http4s._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.dsl.io._
@@ -8,6 +9,7 @@ import org.http4s.implicits._
 import org.http4s.circe._
 import io.circe.Json
 import io.circe.parser
+import org.http4s.Header
 import com.comcast.ip4s._
 import java.time.LocalDateTime
 import models._
@@ -20,11 +22,159 @@ object Main extends IOApp {
   val repo = new SqliteRepository()
   repo.init()
   
+  val swaggerHtml = """<!DOCTYPE html>
+<html>
+<head>
+  <title>API Estudiantes - Documentación</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js">
+</head>
+<body>
+  <redoc spec-url='/api/v1/openapi.json'></redoc>
+  <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+</body>
+</html>"""
+  
+  val openapiJson = """{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "API Estudiantes",
+      "version": "1.0.0",
+      "description": "API para gestionar estudiantes con autenticación"
+    },
+    "servers": [{ "url": "/api/v1" }],
+    "paths": {
+      "/health": {
+        "get": {
+          "summary": "Health check",
+          "responses": { "200": { "description": "OK" } }
+        }
+      },
+      "/usuarios": {
+        "post": {
+          "summary": "Registrar usuario",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" },
+                    "password": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": { "200": { "description": "Usuario registrado" } }
+        }
+      },
+      "/login": {
+        "post": {
+          "summary": "Iniciar sesión",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" },
+                    "password": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": { "200": { "description": "Login exitoso", "content": { "application/json": { "schema": { "type": "object", "properties": { "token": { "type": "string" } } } } } }
+        }
+      },
+      "/estudiantes": {
+        "get": {
+          "summary": "Listar estudiantes",
+          "security": [{ "bearerAuth": [] }],
+          "responses": { "200": { "description": "Lista de estudiantes" } }
+        },
+        "post": {
+          "summary": "Crear estudiante",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nombre": { "type": "string" },
+                    "edad": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": { "200": { "description": "Estudiante creado" } }
+        }
+      },
+      "/estudiantes/{id}": {
+        "get": {
+          "summary": "Obtener estudiante por ID",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+          "responses": { "200": { "description": "Estudiante encontrado" } }
+        },
+        "put": {
+          "summary": "Actualizar estudiante",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "nombre": { "type": "string" },
+                    "edad": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": { "200": { "description": "Estudiante actualizado" } }
+        },
+        "delete": {
+          "summary": "Eliminar estudiante",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+          "responses": { "200": { "description": "Estudiante eliminado" } }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          " bearerFormat": "UUID"
+        }
+      }
+    }
+  }"""
+  
   def getToken(headers: Headers): Option[String] = {
     headers.headers.find(_.name.value == "X-Token").map(_.value)
   }
   
   val routes = HttpRoutes.of[IO] {
+    
+    case GET -> Root / "docs" =>
+      Response[IO](status = Status.Ok)
+        .withEntity(swaggerHtml)
+        .putHeaders(Header("Content-Type", "text/html"))
+        .pure[IO]
+    
+    case GET -> Root / "api" / "v1" / "openapi.json" =>
+      Response[IO](status = Status.Ok)
+        .withEntity(openapiJson)
+        .putHeaders(Header("Content-Type", "application/json"))
+        .pure[IO]
     
     case GET -> Root / "api" / "v1" / "health" =>
       Ok(Json.obj("status" -> Json.fromString("OK"), "timestamp" -> Json.fromString(LocalDateTime.now.toString)))
