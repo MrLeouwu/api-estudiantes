@@ -23,17 +23,41 @@ object Main extends IOApp {
   repo.init()
   
   val swaggerHtml = """<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>API Estudiantes - Documentación</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
   <style>
     body { margin: 0; padding: 0; }
+    .swagger-ui .info .title { font-size: 2.5em; }
   </style>
-  <link href="https://cdn.jsdelivr.net/npm/redoc@2.0.0/bundles/redoc.standalone.css" rel="stylesheet">
 </head>
 <body>
-  <redoc spec-url='/api/v1/openapi.json'></redoc>
-  <script src="https://cdn.jsdelivr.net/npm/redoc@2.0.0/bundles/redoc.standalone.js"></script>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      SwaggerUIBundle({
+        url: '/api/v1/openapi.json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "StandaloneLayout",
+        requestInterceptor: function(request) {
+          return request;
+        },
+        responseInterceptor: function(response) {
+          return response;
+        }
+      });
+    };
+  </script>
 </body>
 </html>"""
   
@@ -42,7 +66,7 @@ object Main extends IOApp {
     "info": {
       "title": "API Estudiantes",
       "version": "1.0.0",
-      "description": "API para gestionar estudiantes"
+      "description": "API para gestionar estudiantes con autenticacion"
     },
     "servers": [{"url": "/api/v1"}],
     "paths": {
@@ -55,14 +79,17 @@ object Main extends IOApp {
       "/usuarios": {
         "post": {
           "summary": "Registrar usuario",
+          "description": "Registrar un nuevo usuario en el sistema",
           "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["username", "password"],
                   "properties": {
-                    "username": {"type": "string"},
-                    "password": {"type": "string"}
+                    "username": {"type": "string", "example": "admin"},
+                    "password": {"type": "string", "example": "password123"}
                   }
                 }
               }
@@ -74,14 +101,17 @@ object Main extends IOApp {
       "/login": {
         "post": {
           "summary": "Iniciar sesion",
+          "description": "Iniciar sesion y obtener token de acceso",
           "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["username", "password"],
                   "properties": {
-                    "username": {"type": "string"},
-                    "password": {"type": "string"}
+                    "username": {"type": "string", "example": "admin"},
+                    "password": {"type": "string", "example": "password123"}
                   }
                 }
               }
@@ -92,13 +122,7 @@ object Main extends IOApp {
               "description": "Login exitoso",
               "content": {
                 "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "token": {"type": "string"},
-                      "message": {"type": "string"}
-                    }
-                  }
+                  "example": {"token": "uuid-aqui", "message": "Login exitoso"}
                 }
               }
             }
@@ -108,20 +132,51 @@ object Main extends IOApp {
       "/estudiantes": {
         "get": {
           "summary": "Listar estudiantes",
+          "description": "Obtener todos los estudiantes",
           "security": [{"bearerAuth": []}],
-          "responses": {"200": {"description": "Lista de estudiantes"}}
+          "parameters": [
+            {
+              "name": "X-Token",
+              "in": "header",
+              "required": true,
+              "schema": {"type": "string"},
+              "example": "tu-token-aqui"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Lista de estudiantes",
+              "content": {
+                "application/json": {
+                  "example": [{"id": 1, "nombre": "Juan", "edad": 20}]
+                }
+              }
+            }
+          }
         },
         "post": {
           "summary": "Crear estudiante",
+          "description": "Crear un nuevo estudiante",
           "security": [{"bearerAuth": []}],
+          "parameters": [
+            {
+              "name": "X-Token",
+              "in": "header",
+              "required": true,
+              "schema": {"type": "string"},
+              "example": "tu-token-aqui"
+            }
+          ],
           "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["nombre"],
                   "properties": {
-                    "nombre": {"type": "string"},
-                    "edad": {"type": "integer"}
+                    "nombre": {"type": "string", "example": "Juan Perez"},
+                    "edad": {"type": "integer", "example": 20}
                   }
                 }
               }
@@ -133,23 +188,32 @@ object Main extends IOApp {
       "/estudiantes/{id}": {
         "get": {
           "summary": "Obtener estudiante por ID",
+          "description": "Obtener un estudiante especifico",
           "security": [{"bearerAuth": []}],
-          "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+          "parameters": [
+            {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}, "example": 1},
+            {"name": "X-Token", "in": "header", "required": true, "schema": {"type": "string"}, "example": "tu-token-aqui"}
+          ],
           "responses": {"200": {"description": "Estudiante encontrado"}}
         },
         "put": {
           "summary": "Actualizar estudiante",
+          "description": "Actualizar un estudiante existente",
           "security": [{"bearerAuth": []}],
-          "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+          "parameters": [
+            {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}, "example": 1},
+            {"name": "X-Token", "in": "header", "required": true, "schema": {"type": "string"}, "example": "tu-token-aqui"}
+          ],
           "requestBody": {
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {"type": "integer"},
-                    "nombre": {"type": "string"},
-                    "edad": {"type": "integer"}
+                    "id": {"type": "integer", "example": 1},
+                    "nombre": {"type": "string", "example": "Juan Actualizado"},
+                    "edad": {"type": "integer", "example": 21}
                   }
                 }
               }
@@ -159,8 +223,12 @@ object Main extends IOApp {
         },
         "delete": {
           "summary": "Eliminar estudiante",
+          "description": "Eliminar un estudiante",
           "security": [{"bearerAuth": []}],
-          "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+          "parameters": [
+            {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}, "example": 1},
+            {"name": "X-Token", "in": "header", "required": true, "schema": {"type": "string"}, "example": "tu-token-aqui"}
+          ],
           "responses": {"200": {"description": "Estudiante eliminado"}}
         }
       }
@@ -168,9 +236,10 @@ object Main extends IOApp {
     "components": {
       "securitySchemes": {
         "bearerAuth": {
-          "type": "http",
-          "scheme": "bearer",
-          "bearerFormat": "UUID"
+          "type": "apiKey",
+          "name": "X-Token",
+          "in": "header",
+          "description": "Token de acceso"
         }
       }
     }
