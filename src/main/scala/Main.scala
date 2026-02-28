@@ -31,13 +31,11 @@ object Main extends IOApp {
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
   <style>
     body { margin: 0; padding: 0; }
-    .swagger-ui .info .title { font-size: 2.5em; }
   </style>
 </head>
 <body>
   <div id="swagger-ui"></div>
   <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
   <script>
     window.onload = function() {
       SwaggerUIBundle({
@@ -46,15 +44,8 @@ object Main extends IOApp {
         deepLinking: true,
         presets: [
           SwaggerUIBundle.presets.apis,
-          SwaggerUIBundle.SwaggerUIStandalonePreset
-        ],
-        layout: "StandaloneLayout",
-        requestInterceptor: function(request) {
-          return request;
-        },
-        responseInterceptor: function(response) {
-          return response;
-        }
+          'SwaggerUIBundle.something'
+        ]
       });
     };
   </script>
