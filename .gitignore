@@ -1,2 +1,8 @@
 /.bsp/
 target/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.jar
+!.gitignore

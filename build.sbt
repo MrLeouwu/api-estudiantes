@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-generic" % "0.14.6",
       "org.tpolecat" %% "doobie-core" % "1.0.0-RC5",
       "org.tpolecat" %% "doobie-hikari" % "1.0.0-RC5",
-      "com.mysql" % "mysql-connector-j" % "8.3.0",
+      "org.xerial" % "sqlite-jdbc" % "3.44.1.0",
       "org.slf4j" % "slf4j-simple" % "2.0.12",
 
       // TAPIR + Swagger

@@ -1,8 +1,8 @@
 FROM eclipse-temurin:17
 
-# Install sbt
+# Install sbt and SQLite
 RUN apt-get update && \
-    apt-get install -y wget && \
+    apt-get install -y wget sqlite3 && \
     wget https://github.com/sbt/sbt/releases/download/v1.9.9/sbt-1.9.9.tgz && \
     tar xzf sbt-1.9.9.tgz -C /opt && \
     ln -s /opt/sbt/bin/sbt /usr/local/bin/sbt

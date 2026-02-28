@@ -1,10 +1,16 @@
 package models
 
 case class Usuario(
-  id: Option[Int],
-  username: String,
-  password: String,
-  apiToken: Option[String] = None
+  id: Int = 0,
+  username: String = "",
+  password: String = "",
+  apiToken: String = ""
+)
+
+case class Estudiante(
+  id: Int = 0,
+  nombre: String = "",
+  edad: Int = 0
 )
 
 case class LoginRequest(
