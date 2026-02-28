@@ -170,6 +170,12 @@ object Main extends IOApp {
         .putHeaders(Header("Content-Type", "text/html"))
         .pure[IO]
     
+    case GET -> Root / "docs" / "" =>
+      Response[IO](status = Status.Ok)
+        .withEntity(swaggerHtml)
+        .putHeaders(Header("Content-Type", "text/html"))
+        .pure[IO]
+    
     case GET -> Root / "api" / "v1" / "openapi.json" =>
       Response[IO](status = Status.Ok)
         .withEntity(openapiJson)
